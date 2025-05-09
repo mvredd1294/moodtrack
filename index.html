@@ -12,7 +12,6 @@
       color: #001858;
       text-align: center;
       padding: 30px;
-
     }
     h1 {
       margin-bottom: 20px;
@@ -29,9 +28,11 @@
       border: none;
       cursor: pointer;
     }
+    .calm{background: pink;}
     .happy { background: #ffb703; }
     .sad { background: #8ecae6; }
     .stressed { background: #f4a261; }
+    .anxious{background: grey;}
     #log {
       margin-top: 30px;
       text-align: left;
@@ -39,6 +40,27 @@
       margin-left: auto;
       margin-right: auto;
     }
+    #log div {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    #log button {
+      padding: 5px 15px;
+      font-size: 14px;
+      background-color: #771a09;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-left: 70px;
+    }
+
+    #log button:hover {
+      background-color: #e04e32;
+    }
+
     #chartContainer {
       max-width: 600px;
       margin: 40px auto;
@@ -57,7 +79,10 @@
   </div>
 
   <div id="log">
-    <h3 style="font-family:cursive;">Your Mood Log:</h3>
+    <div style="display: flex; align-items: center;">
+      <h3 style="font-family:cursive; margin-right: 10px;">Your Mood Log:</h3>
+      <button onclick="clearMoodLogs()">Clear Mood Log</button>
+    </div>
     <ul id="moodList"></ul>
   </div>
 
@@ -111,10 +136,17 @@
       updateChart();
     }
 
+    function clearMoodLogs() {
+      localStorage.removeItem("moodLogs");
+      moodLogs = [];
+      renderMoods();
+      updateChart();
+    }
+
     // Initialize chart
     updateMoodCounts();
     const moodChart = new Chart(ctx, {
-      type: 'bar',
+      type: 'doughnut',
       data: {
         labels: ['Calm','Happy', 'Sad', 'Stressed','Anxious'],
         datasets: [{
@@ -125,8 +157,17 @@
       },
       options: {
         responsive: true,
-        scales: {
-          y: { beginAtZero: true }
+        plugins: {
+          legend: {
+            position: 'top',
+          },
+          tooltip: {
+            callbacks: {
+              label: function(tooltipItem) {
+                return tooltipItem.label + ': ' + tooltipItem.raw + ' entries';
+              }
+            }
+          }
         }
       }
     });
