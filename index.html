@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Daily Mood Tracker</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #fbfddf;
+      color: #001858;
+      text-align: center;
+      padding: 30px;
+
+    }
+    h1 {
+      margin-bottom: 20px;
+      font-family: Georgia, serif;
+    }
+    p{
+        font-family: Geneva, Verdana, sans-serif;
+    }
+    .mood-buttons button {
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+    }
+    .happy { background: #ffb703; }
+    .sad { background: #8ecae6; }
+    .stressed { background: #f4a261; }
+    #log {
+      margin-top: 30px;
+      text-align: left;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    #chartContainer {
+      max-width: 600px;
+      margin: 40px auto;
+    }
+  </style>
+</head>
+<body>
+  <h1> Daily Mood Tracker</h1>
+  <p>How are you feeling today?</p>
+  <div class="mood-buttons">
+    <button class="calm" onclick="logMood('Calm')">😌 Calm</button>
+    <button class="happy" onclick="logMood('Happy')">😀 Happy</button>
+    <button class="sad" onclick="logMood('Sad')">😞 Sad</button>
+    <button class="stressed" onclick="logMood('Stressed')">😅 Stressed</button>
+    <button class="anxious" onclick="logMood('Anxious')">😰 Anxious</button>
+  </div>
+
+  <div id="log">
+    <h3 style="font-family:cursive;">Your Mood Log:</h3>
+    <ul id="moodList"></ul>
+  </div>
+
+  <div id="chartContainer">
+    <h3 style="font-family: cursive;">Mood Summary:</h3>
+    <canvas id="moodChart"></canvas>
+  </div>
+
+  <script>
+    const moodList = document.getElementById("moodList");
+    const ctx = document.getElementById('moodChart').getContext('2d');
+
+    let moodLogs = JSON.parse(localStorage.getItem("moodLogs")) || [];
+
+    let moodCounts = {
+      Calm: 0,
+      Happy: 0,
+      Sad: 0,
+      Stressed: 0,
+      Anxious: 0
+    };
+
+    function updateMoodCounts() {
+      moodCounts = {Calm :0, Happy: 0, Sad: 0, Stressed: 0,Anxious: 0 };
+      moodLogs.forEach(entry => {
+        if (entry.includes("Calm")) moodCounts.Calm++;
+        if (entry.includes("Happy")) moodCounts.Happy++;
+        if (entry.includes("Sad")) moodCounts.Sad++;
+        if (entry.includes("Stressed")) moodCounts.Stressed++;
+        if (entry.includes("Anxious")) moodCounts.Anxious++;
+      });
+    }
+
+    function renderMoods() {
+      moodList.innerHTML = "";
+      moodLogs.slice().reverse().forEach(entry => {
+        const li = document.createElement("li");
+        li.textContent = entry;
+        moodList.appendChild(li);
+      });
+    }
+
+    function logMood(mood) {
+      const date = new Date().toLocaleDateString();
+      const time = new Date().toLocaleTimeString();
+      const entry = `${date} ${time} - ${mood}`;
+      moodLogs.push(entry);
+      localStorage.setItem("moodLogs", JSON.stringify(moodLogs));
+      updateMoodCounts();
+      renderMoods();
+      updateChart();
+    }
+
+    // Initialize chart
+    updateMoodCounts();
+    const moodChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Calm','Happy', 'Sad', 'Stressed','Anxious'],
+        datasets: [{
+          label: 'Mood Count',
+          data: [moodCounts.Calm,moodCounts.Happy, moodCounts.Sad, moodCounts.Stressed, moodCounts.Anxious],
+          backgroundColor: ['pink','#ffb703', '#8ecae6', '#f4a261','grey']
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+
+    function updateChart() {
+      moodChart.data.datasets[0].data = [
+        moodCounts.Calm,
+        moodCounts.Happy,
+        moodCounts.Sad,
+        moodCounts.Stressed,
+        moodCounts.Anxious
+      ];
+      moodChart.update();
+    }
+
+    renderMoods();
+    updateChart();
+  </script>
+</body>
+</html>
